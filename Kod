@@ -1,0 +1,245 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <string.h>
+#include <locale.h>
+
+
+typedef struct monitors
+{
+	char name[80];
+	char pro[80];
+	char diag[80];
+	char razr[80];
+	char matr[80];
+	char izog[80];
+	char raz[80];
+} moni_t;
+
+
+moni_t input_moni(moni_t* m, int k);
+int sorti(int* sort1, int* sort, moni_t* m, int i);
+moni_t edit_moni(moni_t* m);
+void savetxt(FILE* txt, moni_t m[], char* name, int i);
+void savefl(FILE* fl, moni_t* m, int* sort, int i);
+
+
+
+int main(void)
+{
+	setlocale(LC_CTYPE, "rus");
+	FILE* fl;
+	FILE* txt;
+	fl = fopen("monitors.bin", "ab+");
+	txt = fopen("monitors.txt", "w");
+	char ans = '+';
+	char dn[40];         //kl
+	char name[8][80] = { "Имя: ","Производитель: ","Диагональ: ","Разрешение: ","Матрица: ","Изогнутый экран: ","HDMI разъем: " };
+	int num, dn1;     //num1
+	int sort[50], sort1[50];
+	int i = 0;
+	char poz[15];
+	int first = 0;
+	moni_t m[80];          //st
+	fread(&m, sizeof(m), 1, fl);
+	fread(&i, sizeof(i), 1, fl);
+	fread(&sort, sizeof(sort), 1, fl);
+	fclose(fl);
+	while (ans == '+')
+	{
+		printf("\nМеню:\n1)Создать новую запись\n2)Поиск по признаку\n3)Показать базу данных\n4)Сортировать по производителю\n5)Изменить запись\n6)Добавить произвольное число записей\n7)Сохранить данные\n\nВыберете опцию: ");
+		scanf("%d", &num);
+		if (num > 7 || num < 1) printf("\nОпция не найдена.\n");
+		switch (num)
+		{
+		case 1:
+			input_moni(m, i);
+			i++;
+			sort[i] = i;
+			printf("\nУспешно!\n");
+			break;
+
+
+		case 2:
+			printf("Поиск по:\n1) Матрица\n2) Диагональ\nПараметр: ");
+			scanf("%d", &num);
+			switch (num)
+			{
+			case 1:
+				printf("Введите данные: ");
+				scanf("%s", dn);
+				for (int j = 0;j < i;j++)
+				{
+					if (strstr(m[j].matr, dn) != NULL) printf("\n%s%30s | %s%10s | %s%9s | %s%10s | %s%5s | %s%3s | %s%4s", name[0], m[j].name, name[1], m[j].pro, name[2], m[j].diag, name[3], m[j].razr, name[4], m[j].matr, name[5], m[j].izog, name[6], m[j].raz);
+				}
+				break;
+
+
+			case 2:
+				printf("Введите данные: ");
+				scanf("%d", dn1);
+				for (int j = 0;j < i;j++)
+				{
+					if (strstr(m[j].diag, dn1) != NULL) printf("\n%s%30s | %s%10s | %s%8s | %s%10d | %s%5s | %s%3s | %s%4s", name[0], m[j].name, name[1], m[j].pro, name[2], m[j].diag, name[3], m[j].razr, name[4], m[j].matr, name[5], m[j].izog, name[6], m[j].raz);
+				}
+				break;
+			default:
+				printf("\nЗапись не найдена");
+				break;
+			}
+			break;
+
+
+		case 3:
+			for (int j = 0;j < i;j++)
+			{
+				printf("\n%s%30s | %s%10s | %s%8s | %s%10s | %s%5s | %s%3s | %s%4s", name[0], m[j].name, name[1], m[j].pro, name[2], m[j].diag, name[3], m[j].razr, name[4], m[j].matr, name[5], m[j].izog, name[6], m[j].raz);
+			}
+			break;
+
+
+		case 4:
+			sorti(sort1, sort, m, i);
+			for (int r = 0; r < i; r++)
+			{
+				printf("\n%d) %s%30s | %s%10s | %s%8s | %s%10s | %s%5s | %s%3s | %s%4s", r + 1, name[0], m[sort1[r]].name, name[1], m[sort1[r]].pro, name[2], m[sort1[r]].diag, name[3], m[sort1[r]].razr, name[4], m[sort1[r]].matr, name[5], m[sort1[r]].izog, name[6], m[sort1[r]].raz);
+			}
+			break;
+
+
+		case 5:
+			for (int j = 0;j < i;j++)
+			{
+				printf("\n%d) %s%30s | %s%10s | %s%8s | %s%10s | %s%5s | %s%3s | %s%4s\n\n", j + 1, name[0], m[j].name, name[1], m[j].pro, name[2], m[j].diag, name[3], m[j].razr, name[4], m[j].matr, name[5], m[j].izog, name[6], m[j].raz);
+			}
+			edit_moni(m);
+			break;
+
+
+		case 6:
+			printf("Количество записей: ");
+			scanf("%d", &dn1);
+			for (int l = 0;l < dn1; l++)
+			{
+				input_moni(m, i);
+				i++;
+				sort[i] = i;
+			}
+			break;
+
+
+		case 7:
+			fl = fopen("monitors.bin", "wb+");
+			txt = fopen("monitors.txt", "w");
+			fwrite(&m, sizeof(m), 1, fl);
+			fwrite(&i, sizeof(i), 1, fl);
+			fwrite(&sort, sizeof(sort), 1, fl);
+			for (int j = 0;j < i;j++)
+			{
+				fprintf(txt, "%d) %s%30s | %s%10s | %s%8s | %s%10s | %s%5s | %s%3s | %s%4s\n", j + 1, name[0], m[j].name, name[1], m[j].pro, name[2], m[j].diag, name[3], m[j].razr, name[4], m[j].matr, name[5], m[j].izog, name[6], m[j].raz);
+			}
+			printf("\nДанные успешно сохранены!\n");
+			break;
+
+		}
+		getchar();
+		printf("\nПродолжаем? (+/-)\n");
+		scanf("%c", &ans);
+	}
+
+}
+
+
+moni_t input_moni(moni_t* m, int k)
+{
+	printf("Имя:             ");
+	scanf("%s", m[k].name);
+	printf("Производитель:   ");
+	scanf("%s", m[k].pro);
+	printf("Диагональ:       ");
+	scanf("%f", m[k].diag);
+	printf("Разрешение:      ");
+	scanf("%s", m[k].razr);
+	printf("Матрица:         ");
+	scanf("%s", m[k].matr);
+	printf("Изогнутый экран: ");
+	scanf("%s", m[k].izog);
+	printf("HDMI разъем:     ");
+	scanf("%s", m[k].raz);
+	return m[k];
+}
+
+
+int sorti (int sort1[50], int sort[50], moni_t* m, int i)
+{
+	int frst = 0;
+	char pz[15];
+	char pro[50][20];
+	for (int z = 0;z < i;z++)
+	{
+		sort1[z] = sort[z];
+	}
+	for (int z = 0;z < i;z++)
+	{
+		strcpy(pro[z], m[z].pro);
+	}
+	for (int j = 0;j < i;j++)
+	{
+		int result = strcmp(pro[j], pro[j + 1]);
+		if (result > 0) {
+			frst = sort1[j];
+			sort1[j] = sort1[j + 1];
+			sort1[j + 1] = frst;
+			strcpy(pz, pro[j]);
+			strcpy(pro[j], pro[j + 1]);
+			strcpy(pro[j + 1], pz);
+			j = -1;
+		}
+	}
+	return sort1;
+}
+
+
+
+moni_t edit_moni(moni_t* m)
+{
+	int num1;
+	printf("Введите номер записи: ");
+	scanf("%d", &num1);
+	printf("Имя:             ");
+	scanf("%s", m[num1 - 1].name);
+	printf("Производитель:   ");
+	scanf("%s", m[num1 - 1].pro);
+	printf("Диагональ:       ");
+	scanf("%f", m[num1 - 1].diag);
+	printf("Разрешение:      ");
+	scanf("%s", m[num1 - 1].razr);
+	printf("Матрица:         ");
+	scanf("%s", m[num1 - 1].matr);
+	printf("Изогнутый экран: ");
+	scanf("%s", m[num1 - 1].izog);
+	printf("HDMI разъем:     ");
+	scanf("%s", m[num1 - 1].raz);
+	return m[num1 - 1];
+}
+
+
+void savetxt(FILE* txt, moni_t m[], char* name, int i)
+{
+	for (int j = 0;j < i;j++)
+	{
+		fprintf(txt, "%d) %s%30s | %s%10s | %s%8s | %s%10f | %s%5s | %s%3s | %s%4s | %s%4s\n", j, name[0], m[j].name, name[1], m[j].pro, name[2], m[j].diag, name[3], m[j].razr, name[4], m[j].matr, name[5], m[j].izog, name[6], m[j].raz);
+	}
+	printf("\nData saved succesfully\n");
+}
+
+
+void savefl(FILE* fl, moni_t* m, int* sort, int i)
+{
+	fl = fopen("monitors.bin", "wb+");
+	fwrite(&m, sizeof(m), 1, fl);
+	fwrite(&i, sizeof(i), 1, fl);
+	fwrite(&sort, sizeof(sort), 1, fl);
+	printf("\nData saved succesfully\n");
+}
+
+
