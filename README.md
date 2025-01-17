@@ -1,1 +1,1 @@
-# KursovoyProect
+# KursovoyProject
